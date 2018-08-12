@@ -1,0 +1,25 @@
+# Created by .ignore support plugin (hsz.mobi)
+.env
+spam_model/*
+!spam_model/.gitignore
+logs/*
+!logs/.gitignore
+seeds/test_mails/*
+!seeds/test_mails/.gitignore
+!seeds/test_mails/spam
+!seeds/test_mails/ham
+seeds/test_mails/spam/*
+!seeds/test_mails/spam/.gitignore
+seeds/test_mails/ham/*
+!seeds/test_mails/ham/.gitignore
+seeds/train_mails/*
+!seeds/train_mails/.gitignore
+!seeds/train_mails/spam
+!seeds/train_mails/ham
+seeds/train_mails/spam/*
+!seeds/train_mails/spam/.gitignore
+seeds/train_mails/ham/*
+!seeds/train_mails/ham/.gitignore
+.idea
+
+.dockerignore
