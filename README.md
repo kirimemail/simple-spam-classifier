@@ -107,7 +107,14 @@ Use application/x-www-form-urlencoded for parameter.
 - Add Lemmatizer
 
 ### Docker repo
-[Repo](https://hub.docker.com/u/kirimemail/simple-spam-classifier)
+[Repo](https://hub.docker.com/r/kirimemail/simple-spam-classifier)
+
+For first commit, we made MultinomialNB Enron Dataset Model.
+
+Dataset Reference :
+- [Enron-Spam](http://www.aueb.gr/users/ion/data/enron-spam/)
+- [Ling-Spam](http://www.aueb.gr/users/ion/data/lingspam_public.tar.gz)
+- [PU datasets](http://www.aueb.gr/users/ion/data/lingspam_public.tar.gz)
 
 For question: mail me at gamalan.at.kirim.dot.email or gamalanpro.at.gmail.dot.com.
 Feel free to make pull request.
