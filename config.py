@@ -43,4 +43,6 @@ class Config(object):
     USE_STEMMER = bool(int(os.environ.get('USE_STEMMER'))) or False
     USE_MULTI_LANGUAGE_STEMMER = bool(int(os.environ.get('USE_MULTI_LANGUAGE_STEMMER'))) or False
     STEMMER_LANGUAGE = os.environ.get('STEMMER_LANGUAGE')
+    OPTIMIZE_MODEL = bool(int(os.environ.get('OPTIMIZE_MODEL'))) or False
+
     MODEL_PERSISTENCE = os.environ.get('MODEL_PERSISTENCE') or 'joblib'

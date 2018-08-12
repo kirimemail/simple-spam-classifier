@@ -1,4 +1,4 @@
-from .stemmer import SelectStemmedCountVectorizer, StemmedCountVectorizer
+from .stemmer import SelectStemmedCountVectorizer
 from nltk.corpus import stopwords
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB, GaussianNB
 from sklearn.svm import LinearSVC
@@ -212,7 +212,8 @@ class SkLearnClassifier(Classifier):
             self.stop_word = stopwords.words(config.STOP_WORDS)
 
         if config.USE_STEMMER and config.USE_MULTI_LANGUAGE_STEMMER:
-            self.vect = StemmedCountVectorizer(stop_words=self.stop_word, ngram_range=(1, 2))
+            self.vect = SelectStemmedCountVectorizer(stop_words=self.stop_word, ngram_range=(1, 2),
+                                                     use_multilang_stemmer=True)
         elif config.USE_STEMMER:
             self.vect = SelectStemmedCountVectorizer(stop_words=self.stop_word, ngram_range=(1, 2),
                                                      stemmer_language=config.STEMMER_LANGUAGE)
@@ -238,8 +239,11 @@ class SkLearnClassifier(Classifier):
 
     def train_and_test(self, train_data, test_data):
         temp_clf = self.pipeline.fit(train_data['message'], train_data['label'])
-        gsf_clf = GridSearchCV(temp_clf, self.parameters, n_jobs=-1)
-        self.model = gsf_clf.fit(train_data['message'], train_data['label'])
+        if self.config.OPTIMIZE_MODEL:
+            gsf_clf = GridSearchCV(temp_clf, self.parameters, n_jobs=-1)
+            self.model = gsf_clf.fit(train_data['message'], train_data['label'])
+        else:
+            self.model = temp_clf
         score = cross_validate(self.model, test_data['message'], test_data['label'], n_jobs=-1,
                                scoring=['accuracy', 'f1', 'recall', 'precision'])
         self.accuracy = np.mean(score['test_accuracy'])

@@ -73,6 +73,7 @@ KBEST_COMP = 2 # feature selection k value
 USE_STEMMER=0 # Use stemmer or not
 USE_MULTI_LANGUAGE_STEMMER=0 # Use multi language stemmer(autodetect, default to english if fail) or not
 STEMMER_LANGUAGE=english # stemmer language if not using auto detect, available : All language in nltk.stem.SnowballStemmer and PySastrawi(indonesian)
+OPTIMIZE_MODEL=0 # Optimize model using GridsearchCV or not
 MODEL_PERSISTENCE=joblib # available : pickle, joblib, use pickle for faster and uncompressed model
 ```
 
