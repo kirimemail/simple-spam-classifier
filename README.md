@@ -120,7 +120,15 @@ Use application/x-www-form-urlencoded for parameter.
 
 For first commit, we made MultinomialNB Enron Dataset Model to use and test.
 
-Dataset Reference :
+### Docker deployment
+Example:
+```bash
+docker run -d --env-file=.env -p 8000:8000 -name=spam_classifier kirimemail/simple-spam-classifier:0.1.2-enron-multinomialNB
+```
+You could change the .env file with normal env parameter, but make sure you set the all the necessary.
+If necessary you could also mount the seeds volume, by adding volume parameter (-v path/to/seeds:/home/spam_classifier/seeds).
+
+### Dataset Reference :
 - [Enron-Spam](http://www.aueb.gr/users/ion/data/enron-spam/)
 - [Ling-Spam](http://www.aueb.gr/users/ion/data/lingspam_public.tar.gz)
 - [PU datasets](http://www.aueb.gr/users/ion/data/lingspam_public.tar.gz)
