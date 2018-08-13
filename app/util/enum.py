@@ -7,6 +7,20 @@ class TaskStatus(enum.Enum):
     DROPPED = "dropped"
 
 
+class AvailableMethod(enum.Enum):
+    MultinomialNB = "MultinomialNB"
+    BernoulliNB = "BernoulliNB"
+    GaussianNB = "GaussianNB"
+    LinearSVC = "LinearSVC"
+    SGDClassifier = "SGDClassifier"
+    AdaBoostClassifier = "AdaBoostClassifier"
+    MLPClassifier = "MLPClassifier"
+
+    @classmethod
+    def has_value(cls, value):
+        return (value == item.value for item in cls)
+
+
 class LabelSwitcher(object):
     def intlabel_to_string(self, argument):
         """Dispatch method"""

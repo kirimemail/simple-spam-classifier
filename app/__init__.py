@@ -19,7 +19,6 @@ def create_app(config):
     app.config.from_object(config)
     app.config['TRAIN_PERIOD_LIMIT'] = config.TRAIN_PERIOD_LIMIT
     app.config['MODEL_PERSISTENCE'] = config.MODEL_PERSISTENCE
-    app.config['ACTIVE_CLASSIFIER'] = config.ACTIVE_CLASSIFIER
     app.config['STOP_WORDS'] = config.STOP_WORDS
     app.config['KBEST_FUNCT'] = config.KBEST_FUNCT
     app.config['KBEST_COMP'] = config.KBEST_COMP

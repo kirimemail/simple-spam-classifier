@@ -66,7 +66,6 @@ BASIC_AUTH_PASSWORD=123456
 BASIC_AUTH_FORCE=0
 # training configuration
 TRAIN_PERIOD_LIMIT=86400 # training time limit, unable to train before time limit passed or last training completed/dropped
-ACTIVE_CLASSIFIER=MultinomialNB,BernoulliNB,GaussianNB,LinearSVC,SGDClassifier,
 STOP_WORDS = all # stopword language, from nltk, use all if you want to remove all
 KBEST_FUNCT = chi2 # feature selection function, available : chi2, f_classif, mutual_info_classif
 KBEST_COMP = 2 # feature selection k value
@@ -81,10 +80,10 @@ MODEL_PERSISTENCE=joblib # available : pickle, joblib, use pickle for faster and
 Use application/x-www-form-urlencoded for parameter.
 ```
 / (GET) # show app name and version
-/train (GET) # start train, else report if cannot start training
-/classify (POST, param=['subject','body']) # classify 
-/metric # get metric
-/clear_model # clear existing classifier model
+/train (POST,param=['method']) # start train, else report if cannot start training. Select method from available classifier.
+/classify (POST, param=['subject','body', 'method']) # classify 
+/metric (POST,param=['method']) # get metric
+/clear_model, (POST,param=['method']) # clear existing classifier model
 
 /training_data (GET, param=['limit','page']) 
 /training_data/<id> (GET)
@@ -99,10 +98,19 @@ Use application/x-www-form-urlencoded for parameter.
 /test_data/<id> (DELETE)
 ```
 
+### Available Classifier
+- MultinomiaNB
+- GaussianNB
+- BernoulliNB
+- LinearSVC
+- SGDClassifier
+- AdaBoostClassifier
+- MLPClassifier
+
 ### TODO
 - Add more test
 - Trim docker image
-- Separate each classifier into different model file
+- Separate each classifier into different model file (DONE)
 - Make more flexible labelling(multi-class)
 - Add more classifier
 - Add Lemmatizer

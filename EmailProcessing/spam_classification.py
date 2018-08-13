@@ -3,6 +3,8 @@ from nltk.corpus import stopwords
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB, GaussianNB
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import SGDClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_classif
 from sklearn.pipeline import Pipeline
@@ -13,36 +15,6 @@ import os, pickle
 from abc import abstractmethod
 from config import Config
 from app.util import LabelSwitcher
-
-
-class DataDumper(object):
-    def __init__(self, use="pickle"):
-        self.use = use
-        if not os.path.exists('spam_model'):
-            os.mkdir('spam_model')
-
-    def save(self, data, filename="spam_model/"):
-        if self.use == "pickle":
-            return pickle.dump(data, open(filename + "model.pickle", 'wb'))
-        else:
-            return joblib.dump(data, filename + "model.gz", compress=True)
-
-    def load(self, filename='spam_model/'):
-        if self.use == "pickle":
-            return pickle.load(open(filename + "model.pickle", 'rb'))
-        else:
-            return joblib.load(filename + "model.gz")
-
-    def clear(self, filename='spam_model/'):
-        if self.use == "pickle":
-            if os.path.isfile(filename + "model.pickle"):
-                os.remove(filename + "model.pickle")
-                return True
-        else:
-            if os.path.isfile(filename + "model.gz"):
-                os.remove(filename + "model.gz")
-                return True
-        return False
 
 
 class Classifier(object):
@@ -59,53 +31,13 @@ class Classifier(object):
         pass
 
 
-class SpamClassifierFacade(object):
-    available_method = []
-
-    def __init__(self, config: Config, train_data, test_data):
-        self.classifier = dict()
-        self.config = config
-        self.train_data = train_data
-        self.test_data = test_data
-        self.available_method = config.ACTIVE_CLASSIFIER.split(',')
-        for method in self.available_method:
-            self.classifier[method] = SkLearnClassifier(method=method, config=self.config)
-
-    def train_and_test(self):
-        for method in self.available_method:
-            self.classifier[method].train_and_test(self.train_data, self.test_data)
-        self.test_data = None
-        self.train_data = None
-
-    def classify(self, message, method=None):
-        result = dict()
-        label_switcher = LabelSwitcher()
-        for mt in self.available_method:
-            try:
-                is_spam, prob = self.classifier[mt].classify(message, get_percentage=True)
-                result[mt] = {'status': label_switcher.intlabel_to_string(is_spam), 'pSpam': prob[0, 0],
-                              'pHam': prob[0, 1]}
-            except Exception as err:
-                print("{}".format(err))
-
-        return result
-
-    def get_metric(self):
-        result = dict()
-        for method in self.available_method:
-            try:
-                result[method] = self.classifier[method].get_metric()
-            except Exception as err:
-                print("{}".format(err))
-        return result
-
-
-class SkLearnClassifier(Classifier):
+class SkLearnTextClassifier(Classifier):
     pipeline = None
     vect = None
     tfidf = None
     dim = None
     clf = None
+    model = None
 
     class ClassifierSwitcher(object):
         def string_to_classifier(self, argument):
@@ -123,17 +55,6 @@ class SkLearnClassifier(Classifier):
             method = getattr(self, method_name, self.classifier_MultinomialNB())
             # Call the method as we return it
             return method()
-
-        def classifier_MultinomialNB(self):
-            return MultinomialNB(fit_prior=False)
-
-        def param_MultinomialNB(self):
-            return {'vect__ngram_range': [(1, 1), (1, 2)],
-                    'vect__max_features': (None, 3000, 6000),
-                    'tfidf__use_idf': (True, False),
-                    'clf__alpha': (1e-2, 1e-3),
-                    'clf__fit_prior': (True, False),
-                    }
 
         def classifier_LinearSVC(self):
             return LinearSVC(loss='hinge')
@@ -157,10 +78,21 @@ class SkLearnClassifier(Classifier):
                     'tfidf__use_idf': (True, False),
                     'clf__penalty': ('l1', 'l2'),
                     'clf__loss': ('hinge', 'squared_hinge'),
-                    'clf__random_state': (None, 42),
+                    'clf__random_state': (None, 42, 7),
                     'clf__max_iter': (None, 1000),
                     'clf__alpha': (1e-2, 1e-3),
                     'clf__n_iter': (None, 5),
+                    }
+
+        def classifier_MultinomialNB(self):
+            return MultinomialNB(fit_prior=False)
+
+        def param_MultinomialNB(self):
+            return {'vect__ngram_range': [(1, 1), (1, 2)],
+                    'vect__max_features': (None, 3000, 6000),
+                    'tfidf__use_idf': (True, False),
+                    'clf__alpha': (1e-2, 1e-3),
+                    'clf__fit_prior': (True, False),
                     }
 
         def classifier_BernoulliNB(self):
@@ -181,6 +113,32 @@ class SkLearnClassifier(Classifier):
             return {'vect__ngram_range': [(1, 1), (1, 2)],
                     'vect__max_features': (None, 3000, 6000),
                     'tfidf__use_idf': (True, False),
+                    }
+
+        def classifier_AdaBoostClassifier(self):
+            return AdaBoostClassifier(random_state=42, learning_rate=1e-3)
+
+        def param_AdaBoostClassifier(self):
+            return {'vect__ngram_range': [(1, 1), (1, 2)],
+                    'vect__max_features': (None, 3000, 6000),
+                    'tfidf__use_idf': (True, False),
+                    'clf__random_state': (None, 42, 7),
+                    'clf__learning_rate': (1e-2, 1e-3, 1e-4),
+                    'clf__n_estimators': (50, 100)
+                    }
+
+        def classifier_MLPClassifier(self):
+            return MLPClassifier(hidden_layer_sizes=(25, 2), activation='logistic', random_state=42)
+
+        def param_MLPClassifier(self):
+            return {'vect__ngram_range': [(1, 1), (1, 2)],
+                    'vect__max_features': (None, 3000, 6000),
+                    'tfidf__use_idf': (True, False),
+                    'clf__hidden_layer': [(100,), (25, 2), (50, 4)],
+                    'clf__activation': ('logistic', 'tanh', 'relu'),
+                    'clf__learning_rate_init': (1e-2, 1e-3, 1e-4),
+                    'clf__max_iter': (100, 200, 400),
+                    'clf__random_state': (None, 42, 7)
                     }
 
     class SelectKBestSwitcher(object):
@@ -233,9 +191,12 @@ class SkLearnClassifier(Classifier):
         self.model = None
 
     def classify(self, messsage, get_percentage=False):
-        if get_percentage:
-            return int(self.pipeline.predict([messsage])), self.pipeline.predict_log_proba([messsage])
-        return int(self.pipeline.predict([messsage]))
+        try:
+            if get_percentage:
+                return int(self.model.predict([messsage])), self.model.predict_log_proba([messsage])
+        except Exception as err:
+            print("{}".format(err))
+        return int(self.model.predict([messsage])), np.zeros([1, 2])
 
     def train_and_test(self, train_data, test_data):
         temp_clf = self.pipeline.fit(train_data['message'], train_data['label'])
@@ -253,3 +214,88 @@ class SkLearnClassifier(Classifier):
 
     def get_metric(self):
         return {'Precision': self.precision, 'Recall': self.recall, 'F1-Score': self.f1, 'Accuracy': self.accuracy}
+
+
+class DataDumper(object):
+    def __init__(self, use="pickle"):
+        self.use = use
+        if not os.path.exists('spam_model'):
+            os.mkdir('spam_model')
+
+    def save(self, data: SkLearnTextClassifier, filename="spam_model/", method="MultinomialNB"):
+        if self.use == "pickle":
+            return pickle.dump(data, open(filename + method + "model.pickle", 'wb'))
+        else:
+            return joblib.dump(data, filename + method + "model.gz", compress=True)
+
+    def load(self, filename='spam_model/', method="MultinomialNB") -> SkLearnTextClassifier:
+        if self.use == "pickle":
+            return pickle.load(open(filename + method + "model.pickle", 'rb'))
+        else:
+            return joblib.load(filename + method + "model.gz")
+
+    def clear(self, filename='spam_model/', method="MultinomialNB"):
+        if self.use == "pickle":
+            if os.path.isfile(filename + method + "model.pickle"):
+                os.remove(filename + method + "model.pickle")
+                return True
+        else:
+            if os.path.isfile(filename + method + "model.gz"):
+                os.remove(filename + method + "model.gz")
+                return True
+        return False
+
+
+class SpamClassifierFacade(object):
+
+    def __init__(self, config: Config, train_data, test_data, method='MultinomialNB'):
+        self.classifier = dict()
+        self.config = config
+        self.train_data = train_data
+        self.test_data = test_data
+        self.classifier = SkLearnTextClassifier(method=method, config=self.config)
+        self.method = method
+        self.dt = DataDumper(use=config.MODEL_PERSISTENCE)
+        self.__load_model()
+
+    def __load_model(self):
+        try:
+            self.classifier = self.dt.load(method=self.method)
+        except Exception as err:
+            print("{}".format(err))
+
+    def train_and_test(self):
+        self.classifier.train_and_test(self.train_data, self.test_data)
+        self.test_data = None
+        self.train_data = None
+        self.dt.save(self.classifier, method=self.method)
+
+    def classify(self, message):
+        result = dict()
+        label_switcher = LabelSwitcher()
+        try:
+            is_spam, prob = self.classifier.classify(message, get_percentage=True)
+            result = {'status': label_switcher.intlabel_to_string(is_spam), 'pSpam': prob[0, 0],
+                      'pHam': prob[0, 1]}
+        except Exception as err:
+            print("{}".format(err))
+            result = {"message": "{}".format(err)}
+
+        return result
+
+    def get_metric(self):
+        result = dict()
+        try:
+            result = self.classifier.get_metric()
+        except Exception as err:
+            print("{}".format(err))
+            result['message'] = "{}".format(err)
+        return result
+
+    def clear(self):
+        result = False
+        try:
+            result = self.dt.clear(method=self.method)
+        except Exception as err:
+            print("{}".format(err))
+        return result

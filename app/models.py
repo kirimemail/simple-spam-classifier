@@ -117,12 +117,14 @@ class HelperMixin(object):
         return db.session.query(cls).count()
 
     @classmethod
-    def get_first_record(cls):
-        return db.session.query(cls).order_by('id').first()
+    def get_first_record(cls, params={}):
+        query = db.session.query(cls).filter_by(**params)
+        return query.order_by('id').first()
 
     @classmethod
-    def get_last_record(cls):
-        return db.session.query(cls).order_by('-id').first()
+    def get_last_record(cls, params={}):
+        query = db.session.query(cls).filter_by(**params)
+        return query.order_by('-id').first()
 
 
 class DataModel(object):
@@ -138,9 +140,6 @@ class TrainingData(db.Model, CrudableMixin, SerializableMixin, HelperMixin, Data
     lang = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.Integer, default=0)
     modified_at = db.Column(db.Integer, default=0)
-
-    def prepare_data(self):
-        pass
 
     def serialize_for_data(self):
         return {'message': self.get_message(), 'label': self.label}
@@ -166,9 +165,6 @@ class TestData(db.Model, CrudableMixin, SerializableMixin, HelperMixin, DataMode
     created_at = db.Column(db.Integer, default=0)
     modified_at = db.Column(db.Integer, default=0)
 
-    def prepare_data(self):
-        pass
-
     def serialize_for_data(self):
         return {'message': self.get_message(), 'label': self.label}
 
@@ -190,7 +186,8 @@ class Task(db.Model, CrudableMixin, SerializableMixin, HelperMixin):
 
 class SpamModel(db.Model, CrudableMixin, SerializableMixin, HelperMixin):
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.Enum(TaskStatus))
+    classifier = db.Column(db.String(50), index=True)
+    status = db.Column(db.Enum(TaskStatus), index=True)
     created_at = db.Column(db.Integer, default=0)
     modified_at = db.Column(db.Integer, default=0)
 

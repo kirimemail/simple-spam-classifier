@@ -80,9 +80,10 @@ def register(app):
         pass
 
     @app.cli.command()
-    def train():
+    @click.argument("method")
+    def train(method):
         """
         Run train task
         """
-        result = start_train()
+        result = start_train(method=method)
         print(json.dumps(result))

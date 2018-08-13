@@ -36,7 +36,6 @@ class Config(object):
     BASIC_AUTH_PASSWORD = os.environ.get('BASIC_AUTH_PASSWORD') or '123456'
     BASIC_AUTH_FORCE = bool(int(os.environ.get('BASIC_AUTH_FORCE'))) or False
 
-    ACTIVE_CLASSIFIER = os.environ.get('ACTIVE_CLASSIFIER') or 'MultinomialNB'
     KBEST_COMP = int(os.environ.get('KBEST_COMP')) or 2
     KBEST_FUNCT = os.environ.get('KBEST_FUNCT') or 'chi2'
     STOP_WORDS = os.environ.get('STOP_WORDS') or 'english'

@@ -1,8 +1,9 @@
 from app.main import bp
 from EmailProcessing import DataDumper, SpamClassifierFacade
 from flask import jsonify, current_app
-from app.main.forms import ClassifyForm
+from app.main.forms import ClassifyForm, MethodForm
 from app.helper import start_train
+from config import Config
 import os
 
 
@@ -14,36 +15,47 @@ def hello_world():
     })
 
 
-@bp.route('/metric', methods=['GET'])
+@bp.route('/metric', methods=['POST'])
 def info():
+    form = MethodForm()
     result = {'status': 'error', 'code': 2}
-    dt = DataDumper(current_app.config['MODEL_PERSISTENCE'])
-    try:
-        result['code'] = 1
-        classifier = dt.load()  # type: SpamClassifierFacade
-        if classifier.__class__ == SpamClassifierFacade:
-            rst = classifier.get_metric()
-            result['status'] = 'success'
-            result['code'] = 0
-            result['result'] = rst
-    except FileNotFoundError:
-        result['code'] = 2
-        result['message'] = 'Model doesn\'t exist.'
+    if form.validate():
+        scf = SpamClassifierFacade(Config(), None, None, form.method.data)
+        result['metric'] = {form.method.data: scf.get_metric()}
+        result['status'] = 'success'
+        result['code'] = 0
+    else:
+        result['message'] = form.get_error()
     return jsonify(result)
 
 
 @bp.route('/train', methods=['GET'])
 def train():
-    result = start_train()
+    form = MethodForm()
+    result = {'status': 'error', 'code': 2}
+    if form.validate():
+        result = start_train(form.method.data)
+    else:
+        result['message'] = form.get_error()
     return jsonify(result)
 
 
-@bp.route('/clear_model', methods=['GET'])
+@bp.route('/clear_model', methods=['POST'])
 def clear_model():
-    dt = DataDumper(current_app.config['MODEL_PERSISTENCE'])
-    result = {'status': 'No existing model', 'code': 2}
-    if dt.clear():
-        result = {'status': 'Model deleted. Start new train to build new model.', 'code': 0}
+    form = MethodForm()
+    result = {'status': 'error', 'code': 2}
+    if form.validate():
+        scf = SpamClassifierFacade(Config(), None, None, form.method.data)
+        if scf.clear():
+            result['code'] = 0
+            result['status'] = 'success'
+            result['message'] = "{} Model is deleted. Try to start new training before classifying.".format(
+                form.method.data)
+        else:
+            result['code'] = 1
+            result['message'] = "{} Model is not exist.".format(form.method.data)
+    else:
+        result['message'] = form.get_error()
     return jsonify(result)
 
 
@@ -52,19 +64,9 @@ def classify():
     form = ClassifyForm()
     result = {'status': 'error', 'code': 2}
     if form.validate():
-        result['code'] = 1
-        dt = DataDumper(current_app.config['MODEL_PERSISTENCE'])
-        try:
-            classifier = dt.load()  # type: SpamClassifierFacade
-            if classifier.__class__ == SpamClassifierFacade:
-                message = form.subject.data + " " + form.body.data
-                rst = classifier.classify(message=message)
-                result['result'] = {'score': rst, 'message': message}
-                result['code'] = 0
-                result['status'] = 'success'
-        except FileNotFoundError:
-            result['code'] = 2
-            result['message'] = 'Model doesn\'t exist.'
+        scf = SpamClassifierFacade(Config(), None, None, form.method.data)
+        result = {'status': 'success', 'code': 0}
+        result[form.method.data] = scf.classify(form.get_message())
     else:
         result['message'] = form.get_error()
     return jsonify(result)
