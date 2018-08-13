@@ -9,5 +9,4 @@ while true; do
     sleep 5
 done
 flask database seed
-supervisord
-/home/spam_classifier/venv/bin/gunicorn -b :8000 -w 4 spam_classifier:app
+supervisord -c supervisord.conf -n

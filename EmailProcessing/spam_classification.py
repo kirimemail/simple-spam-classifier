@@ -256,9 +256,8 @@ class SpamClassifierFacade(object):
         self.classifier = SkLearnTextClassifier(method=method, config=self.config)
         self.method = method
         self.dt = DataDumper(use=config.MODEL_PERSISTENCE)
-        self.__load_model()
 
-    def __load_model(self):
+    def load_model(self):
         try:
             self.classifier = self.dt.load(method=self.method)
         except Exception as err:
@@ -274,6 +273,7 @@ class SpamClassifierFacade(object):
         result = dict()
         label_switcher = LabelSwitcher()
         try:
+            self.classifier = self.dt.load(method=self.method)
             is_spam, prob = self.classifier.classify(message, get_percentage=True)
             result = {'status': label_switcher.intlabel_to_string(is_spam), 'pSpam': prob[0, 0],
                       'pHam': prob[0, 1]}
@@ -286,6 +286,7 @@ class SpamClassifierFacade(object):
     def get_metric(self):
         result = dict()
         try:
+            self.classifier = self.dt.load(method=self.method)
             result = self.classifier.get_metric()
         except Exception as err:
             print("{}".format(err))
