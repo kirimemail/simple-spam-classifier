@@ -109,9 +109,8 @@ Use application/x-www-form-urlencoded for parameter.
 
 ### TODO
 - Add more test
-- Trim docker image
+- Trim docker image (DONE, no-sample tag, uncompressed ~561MB, compressed in docker hub ~183MB)
 - Separate each classifier into different model file (DONE)
-- Make more flexible labelling(multi-class)
 - Add more classifier
 - Add Lemmatizer
 

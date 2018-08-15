@@ -1,34 +1,33 @@
 FROM python:3.6-alpine
 
-RUN adduser -D spam_classifier
+RUN adduser -D spam_classifier && \
+    adduser spam_classifier tty
 
 WORKDIR /home/spam_classifier
-RUN apk add --no-cache libffi-dev openssl-dev gfortran gcc g++ file binutils musl-dev libstdc++ wget openblas-dev git
 COPY requirements.txt requirements.txt
-RUN python -m venv venv
-RUN venv/bin/pip install --no-cache-dir --upgrade pip
-RUN venv/bin/pip install --no-cache-dir -r requirements.txt
-RUN venv/bin/pip install --no-cache-dir git+git://github.com/Supervisor/supervisor.git#egg=supervisor
-RUN venv/bin/python -m nltk.downloader -d /home/spam_classifier/venv/nltk_data punkt
-RUN venv/bin/python -m nltk.downloader -d /home/spam_classifier/venv/nltk_data stopwords
+RUN apk add --no-cache libstdc++ openblas && \
+    apk add --no-cache --virtual=.build-dependency libffi-dev openssl-dev gfortran gcc g++ file binutils musl-dev wget openblas-dev git
+RUN python -m venv venv && \
+    venv/bin/pip install --no-cache-dir --upgrade pip && \
+    venv/bin/pip install --no-cache-dir -r requirements.txt && \
+    venv/bin/pip install --no-cache-dir git+git://github.com/Supervisor/supervisor.git#egg=supervisor && \
+    venv/bin/python -m nltk.downloader -d /home/spam_classifier/venv/nltk_data punkt && \
+    venv/bin/python -m nltk.downloader -d /home/spam_classifier/venv/nltk_data stopwords
+RUN apk del .build-dependency
 
-RUN adduser spam_classifier tty
 COPY app app
 COPY migrations migrations
-COPY additional_data additional_data
 COPY seeds seeds
 COPY EmailProcessing EmailProcessing
 COPY logs logs
 COPY spam_model spam_model
-COPY config.py spam_classifier.py supervisord.conf ./
-RUN cat supervisord.conf >> /etc/supervisord.conf
+COPY config.py spam_classifier.py supervisord.conf boot.sh ./
 COPY deployment /opt/docker/etc/supervisor.d
-COPY boot.sh boot.sh
 
 ENV FLASK_APP "spam_classifier.py"
-RUN chown -R spam_classifier:spam_classifier ./
+RUN chown -R spam_classifier:spam_classifier ./ && \
+    chmod a+x boot.sh
 USER spam_classifier
-RUN chmod a+x boot.sh
 
 EXPOSE 8000
 ENTRYPOINT ["./boot.sh"]
