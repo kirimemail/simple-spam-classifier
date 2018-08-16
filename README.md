@@ -108,10 +108,9 @@ Use application/x-www-form-urlencoded for parameter.
 - MLPClassifier
 
 ### TODO
-- Add more test
+- Add more test (PARTIAL)
 - Trim docker image (DONE, no-sample tag, uncompressed ~561MB, compressed in docker hub ~183MB)
 - Separate each classifier into different model file (DONE)
-- Add Lemmatizer
 
 ### Docker repo
 [Repo](https://hub.docker.com/r/kirimemail/simple-spam-classifier)

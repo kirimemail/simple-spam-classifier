@@ -26,7 +26,8 @@ def start_train(method="MultinomialNB"):
                                                cls=JsonEncoder),
                         status="PENDING")
             task.save()
-            train_model.delay(json.dumps(task.serialize(), cls=JsonEncoder), method)
+            if 'TESTING' not in current_app.config or not current_app.config['TESTING']:
+                train_model.delay(json.dumps(task.serialize(), cls=JsonEncoder), method)
             result['code'] = 0
             result['status'] = 'success'
             result['message'] = 'Training ' + method + ' started'

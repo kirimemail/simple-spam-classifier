@@ -31,10 +31,10 @@ class Config(object):
     CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND') or 'redis://localhost:6379/0'
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or 'redis://localhost:6379/0'
 
-    TRAIN_PERIOD_LIMIT = int(os.environ.get('TRAIN_PERIOD_LIMIT')) or 86400
+    TRAIN_PERIOD_LIMIT = int(os.environ.get('TRAIN_PERIOD_LIMIT', 86400)) or 86400
     BASIC_AUTH_USERNAME = os.environ.get('BASIC_AUTH_USERNAME') or 'spamclassifier'
     BASIC_AUTH_PASSWORD = os.environ.get('BASIC_AUTH_PASSWORD') or '123456'
-    BASIC_AUTH_FORCE = bool(int(os.environ.get('BASIC_AUTH_FORCE'))) or False
+    BASIC_AUTH_FORCE = bool(int(os.environ.get('BASIC_AUTH_FORCE', 0))) or False
 
     KBEST_COMP = int(os.environ.get('KBEST_COMP', 2)) or 2
     KBEST_FUNCT = os.environ.get('KBEST_FUNCT') or 'chi2'
