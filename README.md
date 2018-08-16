@@ -111,7 +111,6 @@ Use application/x-www-form-urlencoded for parameter.
 - Add more test
 - Trim docker image (DONE, no-sample tag, uncompressed ~561MB, compressed in docker hub ~183MB)
 - Separate each classifier into different model file (DONE)
-- Add more classifier
 - Add Lemmatizer
 
 ### Docker repo
@@ -130,7 +129,6 @@ If necessary you could also mount the seeds volume, by adding volume parameter (
 ### Dataset Reference :
 - [Enron-Spam](http://www.aueb.gr/users/ion/data/enron-spam/)
 - [Ling-Spam](http://www.aueb.gr/users/ion/data/lingspam_public.tar.gz)
-- [PU datasets](http://www.aueb.gr/users/ion/data/lingspam_public.tar.gz)
 
 For question: mail me at gamalan.at.kirim.dot.email or gamalanpro.at.gmail.dot.com.
 Feel free to make pull request.
